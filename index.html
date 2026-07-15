@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>MineMelody — Play Music with Your Hands 💖</title>
+  <meta name="description" content="Browser-based musical instrument using hand tracking. Western, Indian Classical & Easy Play modes."/>
+  <link rel="stylesheet" href="style.css"/>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💖</text></svg>"/>
+</head>
+<body>
+
+<!-- START SCREEN -->
+<div id="start-screen">
+  <div class="start-content">
+    <div class="start-motif">💖✨🎵</div>
+    <h1 class="start-logo">MineMelody</h1>
+    <p class="start-tagline">
+      Play music in mid-air with your hands 🎀<br/>
+      Left hand = <strong>pitch</strong>, right hand = <strong>volume</strong> (pinch to control)
+    </p>
+    <div class="start-permissions">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>
+      </svg>
+      Camera access needed — nothing leaves your browser 🔒
+    </div>
+    <br/>
+    <button id="start-btn">💖 Start Playing</button>
+    <div id="start-error" class="start-error"></div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <video id="video-feed" autoplay playsinline muted></video>
+  <canvas id="canvas"></canvas>
+  <div id="loading-overlay"><div class="spinner"></div>Loading hand tracker…</div>
+
+  <!-- Mode Tabs -->
+  <div id="mode-tabs">
+    <button class="mode-tab active" data-mode="western">🎹 Western</button>
+    <button class="mode-tab" data-mode="indian">🪷 Indian Classical</button>
+    <button class="mode-tab" data-mode="easyplay">💕 Easy Play</button>
+    <button class="mode-tab" data-mode="webkeys">✨ WebKeys</button>
+  </div>
+
+  <!-- Status -->
+  <div id="status-panel">
+    <div><span class="label">Melody:</span> <span class="val" id="s-melody">---</span></div>
+    <div><span class="label">Volume:</span> <span class="val" id="s-volume">---</span></div>
+    <div><span class="label">Pinch:</span> <span class="val" id="s-pinch">----</span></div>
+    <div><span class="label">Chord:</span> <span class="val" id="s-chord">---</span></div>
+    <div><span class="label">Hands:</span> <span class="val" id="s-hands">0</span></div>
+    <div><span class="label">Scale:</span> <span class="val" id="s-scale">---</span></div>
+  </div>
+
+  <!-- WESTERN TOOLBAR -->
+  <div class="toolbar" id="tb-western">
+    <div class="tb-group">Mode
+      <select class="tb-select" id="w-mode"><option value="continuous">Theremin</option><option value="scale">Scale Snap</option><option value="arp">Arpeggiator</option></select>
+    </div>
+    <div class="tb-group">Root
+      <select class="tb-select" id="w-root"><option>C</option><option>C#</option><option>D</option><option>D#</option><option>E</option><option>F</option><option>F#</option><option>G</option><option>G#</option><option>A</option><option>A#</option><option>B</option></select>
+    </div>
+    <div class="tb-group">Scale
+      <select class="tb-select" id="w-scale"><option value="major">Major</option><option value="minor">Minor</option><option value="penta_maj">Penta Maj</option><option value="penta_min">Penta Min</option><option value="blues">Blues</option><option value="dorian">Dorian</option><option value="mixolydian">Mixolydian</option><option value="whole_tone">Whole Tone</option><option value="chromatic">Chromatic</option></select>
+    </div>
+    <div class="tb-group">Instrument
+      <select class="tb-select" id="w-wave">
+        <option value="sine">Sine Wave</option>
+        <option value="piano">🎹 Piano</option>
+        <option value="violin">🎻 Violin</option>
+        <option value="organ">🎛️ Organ</option>
+        <option value="synth">🔊 Synth</option>
+        <option value="harmonium">🪗 Harmonium</option>
+      </select>
+    </div>
+    <div class="tb-group">Range
+      <select class="tb-select" id="w-range"><option value="1">1 oct</option><option value="2">2 oct</option><option value="3" selected>3 oct</option><option value="4">4 oct</option><option value="5">5 oct</option></select>
+    </div>
+    <div class="tb-group"><label><input type="checkbox" class="tb-check" id="w-chord"/> +Chord</label></div>
+  </div>
+
+  <!-- INDIAN CLASSICAL TOOLBAR -->
+  <div class="toolbar" id="tb-indian">
+    <div class="tb-group">Raga
+      <select class="tb-select" id="i-raga"><option value="yaman">Yaman</option><option value="bhupali">Bhupali</option><option value="kafi">Kafi</option><option value="bhairav">Bhairav</option><option value="malkauns">Malkauns</option></select>
+    </div>
+    <div class="tb-group">Timbre
+      <select class="tb-select" id="i-timbre"><option value="bansuri">Bansuri</option><option value="sitar">Sitar</option><option value="santoor">Santoor</option><option value="veena">Veena</option></select>
+    </div>
+    <div class="tb-group">Tuning
+      <select class="tb-select" id="i-tuning"><option value="equal">Equal Temp</option><option value="shruti">22-Shruti</option></select>
+    </div>
+    <div class="tb-group"><button class="tb-btn" id="i-set-sa">Set Sa 🎯</button></div>
+    <div class="tb-group"><label><input type="checkbox" class="tb-check" id="i-tanpura" checked/> Tanpura 🪷</label></div>
+    <div class="tb-group">Drone Vol <input type="range" class="tb-slider" id="i-drone-vol" min="0" max="100" value="30"/></div>
+  </div>
+
+  <!-- EASY PLAY TOOLBAR -->
+  <div class="toolbar" id="tb-easyplay">
+    <div class="tb-group">Key
+      <select class="tb-select" id="e-key"><option>C</option><option>D</option><option>E</option><option>F</option><option>G</option><option>A</option><option>B</option></select>
+    </div>
+    <div class="tb-group">
+      <select class="tb-select" id="e-keytype"><option value="major">Major</option><option value="minor">Minor</option></select>
+    </div>
+    <div class="tb-group">Capo <input type="range" class="tb-slider" id="e-capo" min="-6" max="6" value="0"/><span id="e-capo-val">0</span></div>
+    <div class="tb-group">Progression
+      <select class="tb-select" id="e-prog"><option value="0">I-V-vi-IV</option><option value="1">vi-IV-I-V</option><option value="2">I-vi-IV-V</option><option value="3">ii-V-I</option></select>
+    </div>
+  </div>
+
+  <!-- WEBKEYS TOOLBAR -->
+  <div class="toolbar" id="tb-webkeys">
+    <div class="tb-group">Instrument
+      <select class="tb-select" id="k-instrument">
+        <option value="piano">🎹 Piano</option>
+        <option value="violin">🎻 Violin</option>
+        <option value="organ">🎛️ Organ</option>
+        <option value="synth">🔊 Synth</option>
+        <option value="harmonium">🪗 Harmonium</option>
+      </select>
+    </div>
+    <div class="tb-group">Gesture
+      <select class="tb-select" id="k-gesture">
+        <option value="hover">✨ Hover to Play</option>
+        <option value="pinch">🤏 Pinch to Play</option>
+      </select>
+    </div>
+    <div class="tb-group">Root
+      <select class="tb-select" id="k-root">
+        <option>C</option><option>C#</option><option>D</option><option>D#</option><option>E</option><option>F</option><option>F#</option><option>G</option><option>G#</option><option>A</option><option>A#</option><option>B</option>
+      </select>
+    </div>
+    <div class="tb-group">Scale
+      <select class="tb-select" id="k-scale">
+        <option value="chromatic">Chromatic</option>
+        <option value="major">Major</option>
+        <option value="minor">Minor</option>
+        <option value="pentatonic">Pentatonic</option>
+      </select>
+    </div>
+    <div class="tb-group">Octave
+      <select class="tb-select" id="k-octave">
+        <option value="2">Octave 2</option>
+        <option value="3">Octave 3</option>
+        <option value="4" selected>Octave 4</option>
+        <option value="5">Octave 5</option>
+        <option value="6">Octave 6</option>
+      </select>
+    </div>
+    <div class="tb-group">Sustain
+      <input type="range" class="tb-slider" id="k-sustain" min="100" max="3000" value="800"/>
+      <span id="k-sustain-val">0.8s</span>
+    </div>
+    <div class="tb-group">Reverb
+      <input type="range" class="tb-slider" id="k-reverb" min="0" max="100" value="30"/>
+      <span id="k-reverb-val">30%</span>
+    </div>
+  </div>
+
+  <!-- CHORD PADS (Easy Play) -->
+  <div id="chord-pads">
+    <button class="chord-pad" data-idx="0">I</button>
+    <button class="chord-pad" data-idx="1">V</button>
+    <button class="chord-pad" data-idx="2">vi</button>
+    <button class="chord-pad" data-idx="3">IV</button>
+  </div>
+
+  <!-- MOOD PRESETS (Easy Play) -->
+  <div id="mood-presets">
+    <button class="mood-btn" data-mood="rainy"><span class="mood-emoji">🌧️</span> Rainy Day</button>
+    <button class="mood-btn" data-mood="warm"><span class="mood-emoji">☀️</span> Warm & Nostalgic</button>
+    <button class="mood-btn" data-mood="heartbreak"><span class="mood-emoji">💔</span> Heartbreak Ballad</button>
+  </div>
+
+  <!-- VIRTUAL KEYBOARD CONTAINER (WebKeys) -->
+  <div id="keyboard-wrap"></div>
+
+  <!-- Keyboard shortcut hint -->
+  <div id="keyboard-hint" class="keyboard-hint">
+    <span>White: <kbd>`</kbd> <kbd>Q</kbd> <kbd>W</kbd> <kbd>E</kbd> <kbd>R</kbd> <kbd>T</kbd> <kbd>Y</kbd> / <kbd>U</kbd> <kbd>I</kbd> <kbd>O</kbd> <kbd>P</kbd> <kbd>[</kbd> <kbd>]</kbd> <kbd>\</kbd> &nbsp;·&nbsp; Black: <kbd>1</kbd> <kbd>2</kbd> <kbd>4</kbd> <kbd>5</kbd> <kbd>6</kbd> / <kbd>8</kbd> <kbd>9</kbd> <kbd>-</kbd> <kbd>=</kbd> <kbd>⌫</kbd></span>
+  </div>
+</div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
