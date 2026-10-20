@@ -78,3 +78,7 @@ MineMelody uses a customized **Girly Pink Glassmorphism Theme** featuring:
 * Translucent panels with soft blurs (`backdrop-filter`).
 * Vibrant pink and lavender interactive UI details.
 * Responsive desktop and mobile layouts.
+
+## License
+
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
